@@ -1,93 +1,127 @@
-# SPEAR_decadal_predictions
+Feb. 2024 - Documentation from Fanrong Zeng
 
+ Step-by-step guide to running SPEAR decadal prediction experiments
 
+Real-time decadal predictions are conducted annually at GFDL SD division. Each year by the end of February, the predictions are made and sent to WMO Lead Centre for Interannual to Decadal Prediction, an operational service that provides annually-updated multi-model decadal predictions. This article lists the commands to run the GFDL decadal predictions initialized from January 2024 with the SPEAR_LO model.
+Download JRA-55 6hr Jan 2023 to Jan 2024 data
 
-## Getting started
+## download jra55 6hr surface pressure and atmospheric T, U, V, Q data
+Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+# download surface pressure data
+click on data access and scroll down to find the JRA-55 6-Hourly Model Resolution Surface Analysis Fields
+downloaded surface pressure files,  e.g.  anl_surf.001_pres.reg_tl319.2022050100_2022053118-319.2022120100_2022123118.zeng613294.nc.tar
+make sure to select converted files to download the netcdf format files.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+# download atmospheric data
+Using the same steps to download the atmospheric U, V, T, and Q data by clicking on JRA-55 6-Hourly Model Resolution Model Level Analysis Fields
 
-## Add your files
+Only GRB format data were available for the January 2024 atmospheric U, V, T, and Q data at the time of writing this guide.. Downloaded the GRB files and used the ncl command to convert to netcdf format,
+ncl_convert2nc theGRBfiles -e grb -l -nc4
+You may need to run the ncks command to set time as the record dimension,
+ncks -O --mk_rec_dmn initial_time0_hours  in.nc out.nc
+Pre-processing the downloaded JRA-55 6hr data
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+ # break the ps files into multiple 1-month files and save in /work/$user/jra55/yyyymm/.
+ # check the downloaded files for jan-dec 2023
+  ls -l anl_surf.0001_pres.reg*2023*_2023*.nc
+ # process the files
+ /nbhome/fjz/sdDecPre/ecda.grain.JRA55.ps.1yr.csh 2023
+ # check the downloaded files for jan 2024
+ ls -l anl_surf.0001_pres.reg*2024*_2024*.nc # list of input files
+ # process the files
+ /nbhome/fjz/sdDecPre/ecda.grain.JRA55.ps.jan.csh 2024
+ # check the output files,
+ ls  /work/$user/jra55/202[34]??/PS.202[34]??.*.nc
+ # should have 1460 (365*4 ) files  for non-leap years and 1464 files for leap years.
 
-```
-cd existing_repo
-git remote add origin https://gitlab.gfdl.noaa.gov/Colleen.McHugh/spear_decadal_predictions.git
-git branch -M main
-git push -uf origin main
-```
+# Process the  atmos files into 1-month files and save in /work/$user/jra55/yyyymm/.
+# Each of the atmos files contains 10-day data.  Run these following command to create monthly files,
+/nbhome/fjz/sdDecPre/ecda.grain.JRA55.1yr.csh
+/nbhome/fjz/sdDecPre/ecda.grain.JRA55.jan.csh
+# check the output files,
+ls  /work/$user/jra55/202[34]??/{011_tmp,033_ugrd,034_vgrd,051_spfh}*202[34]??.*.nc
 
-## Integrate with your tools
+# combine the surface and atmospheric files
+foreach mm (01 02 03 04 05 06 07 08 09 10 11 12)
+    /nbhome/fjz/sdDecPre/ecda.combine.JRA55.all_vars.csh 2023 $mm
+end
+# check the output files,
+ls  /work/$user/jra55/2023/*
 
-- [ ] [Set up project integrations](https://gitlab.gfdl.noaa.gov/Colleen.McHugh/spear_decadal_predictions/-/settings/integrations)
+/nbhome/fjz/sdDecPre/ecda.combine.JRA55.all_vars.csh 2024 01
+# check the output files,
+ls  /work/$user/jra55/2024/*
 
-## Collaborate with your team
+# regrid the combined files onto SPEAR_LO atmos grid
+/nbhome/fjz/sdDecPre/ecda.regrid.JRA55.csh 2023
+/nbhome/fjz/sdDecPre/ecda.regrid.JRA55.jan2024.csh
+# check the output files,
+ls -l  /work/$user/jra55/{2023,2024} /*
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+# transfer to gaea
+gcp the files in /work/$user/jra55/{2023,2024} to gaea, /gpfs/f5/gfdl_sd/world-shared/Xiaosong.Yang/archive/ada_data/JRA55/2023
 
-## Test and Deploy
+The previous years data are located under
+/lustre/f2/dev/gfdl/Xiaosong.Yang/archive/ada_data/JRA55/.
+Now may be a good time to transfer all the files to the F5 system.
+Extend ERSST monthly mean SST  to Jan 2024
 
-Use the built-in continuous integration in GitLab.
+# download monthly mean ERSST SST up to January 2024
+Go to https://psl.noaa.gov/data/gridded/data.noaa.ersst.v5.html to download sst.mnmean.nc
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+# ersst file is on lat/lon grid,  run the script to regrid it unto SPEAR_LO ocean grid
+ /nbhome/fjz/sdDecPre/data_sst.mnmean.v5.spear_lo.csh
 
-***
+# transfer to gaea
+gcp SPEAR_lo_tripolar.sst.nc gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/ersst.sst.mnmean.v5.nc
 
-# Editing this README
+Extend reanalysis to dec. 2023
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+The 10-members are run in two 5-member ensembles, SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst and SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10.
+The runs  have completed jan1958-dec2022, and need to extend to dec.2023.
 
-## Suggestions for a good README
+## expt: SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+# take the jan.2023 initial conditions and transfer to gaea:
+gcp  /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst/restart/20230101.tar gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_restart_20230101.tar
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+# re-generate runscript
+Login to gaea5X
+Module load fre/bronx-21
+frerun --platform=ncrc5.intel-classic --target=repro,openmp -x /autofs/ncrc-svm1_home2/Fanrong.Zeng/ecda_xml/spear_F/xml/SPEAR_experiments_Q50L33_c96_o1_HIST_jra55_B01_1958.C5.xml  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
 
-## Name
-Choose a self-explaining name for your project.
+# submit the runscript
+sbatch /gpfs/f5/gfdl_sd/scratch/Fanrong.Zeng/SPEAR_experiments_Q/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst/ncrc5.intel-classic-repro-openmp/scripts/run/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+# you may want to compare the runscript to the last year’s below and make sure the initial conditions and fyear variable  are the only real differences.  /lustre/f2/dev/gfdl/Fanrong.Zeng/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst/ncrc3.intel16-repro-openmp/scripts/run/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_yr2022
+ 
+## setup and run members 06-10
+ Same as for the members 01-05 but setup the runscript based on  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10
+The initial conditions are transferred to gaea via this command
+gcp  /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10/restart/20230101.tar gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10_restart_20230101.tar
+Run 2024 decadal predictions from the Jan. 2024 initial conditions
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+The 10-member prediction runs are conducted in two 5-member ensembles with the same experiment name i20240101 but under different directories.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## run prediction experiment: i20240101 for members 01-05
+# combine initial conditions for members 01-05.
+set expt = SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+set resfile = the-2024-restart file created in 4. # also available on archive, e.g. /archive/fjz/SPEAR/$expt/restart/????0101.tar
+set outfile = restart-file-2024 # e.g. /lustre/f2/dev/gfdl/Fanrong.Zeng/module_data/D_initCond/{$expt}_restart_20240101.tar
+cd /lustre/f2/scratch/gfdl/Fanrong.Zeng/tmpdir
+csh -f /lustre/f2/dev/gfdl/Fanrong.Zeng/module_data//combine.restart.5ees $resfile
+tar -cf $outfile *
+ls -l $outfile
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+# xml/runscript  for prediction:  i20240101 members 01-05
+ start from  /ncrc/home2/Fanrong.Zeng/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-18.xml
+ add  <experiment name="i20240101" inherit="i20190101">
+ set initCond to restart-file-2024 created above
+generate runscript using frerun.
+# these are the commands used for 2023 predictions
+module load fre/bronx-19
+frerun  -x /ncrc/home2/Fanrong.Zeng/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-18.xml --platform=ncrc4.intel16 --qos=urgent --target=repro,openmp i20230101
+sbatch the runscript
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## run prediction experiment: i20240101 for members 06-10
+Following the same steps as for members 01-05. Make sure to start from the 20240101 restart file from expt: SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

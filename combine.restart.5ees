@@ -1,0 +1,39 @@
+#!/bin/csh -f
+
+set echo
+set restart_file =  "$1"
+#set ees = (ens_01 ens_02 ens_03 ens_04 ens_05 ens_06 ens_07 ens_08 ens_09 ens_10)
+set ees = (ens_01 ens_02 ens_03 ens_04 ens_05)
+
+       tar -xf $restart_file
+       set file_previous = ""
+
+foreach ee ( $ees)
+       set multires = (`ls *.res.$ee.nc.???? *.res.$ee.tile*.nc.????`)
+       foreach file ( $multires )
+           if ( $file:r != $file_previous:r ) then
+              set input_files = ( `ls $file:r.????` )
+              if ( $#input_files > 0 ) then
+                 set compressed = `ncdump -h $input_files[1] | grep 'tile_index:compress' | wc -l`
+                 if ( $compressed > 0 ) then
+                    echo "combine-ncc $input_files $file:r && rm -f $input_files"
+                    combine-ncc $input_files $file:r && rm -f $input_files
+                    if ( $status != 0 ) then
+                      echo "ERROR: in execution of combine-ncc on restarts"
+                      exit 1
+                    endif
+                 else
+                    echo "mppnccombine -64 $file:r $input_files && rm -f $input_files"
+                    mppnccombine -64 $file:r $input_files && rm -f $input_files
+                    if ( $status != 0 ) then
+                      echo "ERROR: in execution of mppnccombine on restarts"
+                      exit 1
+                    endif
+                 endif
+              endif
+           else
+              continue
+           endif
+           set file_previous = $file
+       end
+end

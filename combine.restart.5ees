@@ -2,7 +2,6 @@
 
 set echo
 set restart_file =  "$1"
-#set ees = (ens_01 ens_02 ens_03 ens_04 ens_05 ens_06 ens_07 ens_08 ens_09 ens_10)
 set ees = (ens_01 ens_02 ens_03 ens_04 ens_05)
 
        tar -xf $restart_file

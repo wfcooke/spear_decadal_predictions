@@ -1,11 +1,32 @@
 #!/bin/csh -f
 
 set echo
-set restart_file =  "$1"
+
+set expt = SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+set restart_file = /gpfs/f5/gfdl_sd/scratch/$USER/SPEAR_experiments_Q/${expt}/ncrc5.intel-classic-repro-openmp/restart/20240101.tar
+
 set ees = (ens_01 ens_02 ens_03 ens_04 ens_05)
 
-       tar -xf $restart_file
-       set file_previous = ""
+set out_dir = /gpfs/f5/gfdl_sd/proj-shared/$USER/SPEAR_decPred_IC
+set outfile = ${out_dir}/${expt}_restart_20240101.tar
+set tmpdir = /gpfs/f5/gfdl_sd/scratch/$USER/${expt}
+
+if ( ! -e ${out_dir} ) then
+    echo "Creating outdir ${out_dir}"
+    mkdir -p ${out_dir}
+end
+
+if ( -e ${tmpdir} ) then
+    echo "Removing tmp dir ${tmpdir}"
+    rm -rf ${tmpdir}
+end
+
+mkdir -p ${tmpdir}
+
+cd ${tmpdir}
+
+tar -xf $restart_file
+set file_previous = ""
 
 foreach ee ( $ees)
        set multires = (`ls *.res.$ee.nc.???? *.res.$ee.tile*.nc.????`)
@@ -36,3 +57,5 @@ foreach ee ( $ees)
            set file_previous = $file
        end
 end
+
+tar -cf ${outfile} *

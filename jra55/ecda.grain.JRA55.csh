@@ -2,7 +2,11 @@
 
 set echo
 
-source /home/cem/git/spear_decadal_predictions/jra55/env.csh
+#get directory of this script
+set rootdir = `dirname $0`
+set script_dir = `cd $rootdir && pwd`
+
+source ${script_dir}/env.csh
 
 #remove work_dir and recreate it
 if ( -e ${work_dir} ) then

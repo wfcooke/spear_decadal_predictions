@@ -1,0 +1,22 @@
+use "$1" 
+use /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_ncep1_A01_1950/pp_ens_01/atmos/atmos.static.nc
+sho data
+
+set mem/siz=10000
+let newPs = PS[d=1,GXY=zsurf[d=2]@ave]
+let newPHIS = PHIS[d=1,GXY=zsurf[d=2]@ave]
+let newT = 'T'[d=1,GXY=zsurf[d=2]@ave]
+let newU = U[d=1,GXY=zsurf[d=2]@ave]
+let newV = V[d=1,GXY=zsurf[d=2]@ave]
+let newQ = Q[d=1,GXY=zsurf[d=2]@ave]
+save/file=new.nc/clo HYAI[d=1],HYBI[d=1],newPS, newPHIS,newT,newU,newV,newQ
+
+sp ncrename -v NEWT,T new.nc
+sp ncrename -v NEWQ,Q new.nc
+sp ncrename -v NEWPS,PS -v NEWPHIS,PHIS -v NEWU,U -v NEWV,V new.nc
+sp ncrename -v LAT1,lat -v LON1,lon -v TIME,time -v HLEVI,hlevi  -d LAT1,lat -d LON1,lon -d TIME,time -d HLEVI,hlevi -d LEV,lev new.nc
+sp ncrename -v LEV,lev new.nc
+sp ncrename -v HYAI,hyai -v HYBI,hybi new.nc
+!sp ncks -x -v LAT1_bnds -v LON1_bnds -v LEV_bnds new.nc out.nc
+!sp ls -l out.nc
+

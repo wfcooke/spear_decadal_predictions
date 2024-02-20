@@ -1,26 +1,40 @@
 #!/bin/csh -f
 
-mkdir /work/$user/jra55/old
-#set yyyy = 2018                  # running on an011 1/29/2020
-#set yyyy = 2019                  # running on an011 4/28/2020
-#set yyyy = 2020                  # running on an011 1/22/2021
-# set yyyy =  2022                  # running on an011 2/06/2022, an008 12/7/2022
-set yyyy = $1 # 2023                  #  an202 2/5/2023
+#get directory of this script
+set rootdir = `dirname $0`
+set script_dir = `cd $rootdir && pwd`
 
-  cd /work/$user/jra55
+source ${script_dir}/env.csh
+
+mkdir ${base_dir}/old
+set yyyy = $1
+
+  cd ${base_dir}
   # mv $yyyy/* files to old/$yyyy/.
   mkdir old/$yyyy
   mv $yyyy/* old/$yyyy/.
-  # specifie outdir 
-  set outdir = /work/$user/jra55/$yyyy
-  # specifie indir 
-  set indir = /work/$user/jra55/old/$yyyy
+  # Delete "string " from the nc files if present
+  cd old/$yyyy
+  foreach f (*.nc)
+    ncdump -h $f | grep "string "
+    if ($status == 0 ) then
+       mv $f old.nc
+       ncdump old.nc | sed s/"string "// > tt.cdl
+       ncgen -o $f -k 4 tt.cdl
+       ls -l $f
+       rm -f old.nc tt.cdl
+    endif
+  end
+  # specify outdir
+  set outdir = ${base_dir}/$yyyy
+  # specify indir
+  set indir = /${base_dir}/old/$yyyy
   mkdir -p $outdir
   cd $outdir || exit -1
   foreach infile ($indir/$yyyy*.nc)
    if ( ! -e $infile:t ) then
     ls -l $infile
-    ferret -script "/home/$user/sdDecPred/Regrid_SPEAR_lo.atmos.jnl" "$infile"
+    ferret -script "${script_dir}/Regrid_SPEAR_lo.atmos.jnl" "$infile"
     mv new.nc $infile:t || exit -1
    endif
   end
@@ -29,5 +43,5 @@ ls -l $outdir/$yyyy*.nc
 
 # final checking the file size
     echo $yyyy
-    ls -lh /work/$user/jra55/old/$yyyy/*.nc | grep "190M" # the original files
-    ls -lh /work/$user/jra55/$yyyy/*.nc | grep "96M"  # outfiles created
+    ls -lh ${indir}/*.nc | grep "190M" # the original files
+    ls -lh ${outdir}/*.nc | grep "96M"  # outfiles created

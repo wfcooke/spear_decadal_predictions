@@ -1,13 +1,23 @@
 #!/bin/csh -f
 
-source /usr/local/Modules/default/init/csh
-module load nco
-
 set echo
-set yyyy =  2023
-set months =  year # year or jan
-set infilesDir = /nbhome/cem/jra55_raw
-#set infilesDir =  /nbhome/fjz
+
+source /home/cem/git/spear_decadal_predictions/jra55/env.csh
+
+#remove work_dir and recreate it
+if ( -e ${work_dir} ) then
+    rm -rf ${work_dir}
+end
+
+mkdir ${work_dir}
+
+#run for all months in 2023 and january 2024
+
+#set yyyy = 2023
+#set months = year
+
+set yyyy =  2024
+set months =  jan # year or jan
 
 if ($months == "year" ) then
   set mms = ( 01 02 03 04 05 06 07 08 09 10 11 12)
@@ -30,8 +40,10 @@ foreach invar (011_tmp 033_ugrd 034_vgrd 051_spfh)
 end
 end
 
-#  grain T, U, V, Q to yyyymm files saved in /work/fjz/jra55/$yyyy$mm
-cd $TMPDIR; wipetmp
+#  grain T, U, V, Q to yyyymm files saved in ${base_dir}/$yyyy$mm
+
+cd ${tmp_dir}
+
 echo $invar $yyyy $mm
 foreach invar (011_tmp 033_ugrd 034_vgrd 051_spfh)
 foreach mm ($mms)
@@ -40,7 +52,7 @@ foreach mm ($mms)
   if ($invar == 034_vgrd) set varnamein = VGRD_GDS4_HYBL
   if ($invar == 051_spfh) set varnamein = SPFH_GDS4_HYBL
 
-  set outdir = /work/$user/jra55/$yyyy$mm
+  set outdir = ${base_dir}/out/$yyyy$mm
   # check if outfiles exist
   set checkingfiles = `ls $outdir/$invar.*.nc | wc | awk '{print $1}'`
   if ( $checkingfiles >= 112 ) then
@@ -93,7 +105,7 @@ foreach mm ( $mms )
   echo $yyyy $mm 
 foreach invar (011_tmp 033_ugrd 034_vgrd 051_spfh)
   echo  $invar
-  ls -lh /work/$user/jra55/$yyyy$mm/$invar.$yyyy$mm.*.nc | wc
+  ls -lh ${base_dir}/out/$yyyy$mm/$invar.$yyyy$mm.*.nc | wc
 end
 end
 

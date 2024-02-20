@@ -1,7 +1,6 @@
 #!/bin/csh -f
 
-source /usr/local/Modules/default/init/csh
-module load nco
+source /home/Colleen.McHugh/git/spear_decadal_predictions/jra55/env.csh
 
 # grain surface pressure, 1-yr file, into 12  monthly files
 

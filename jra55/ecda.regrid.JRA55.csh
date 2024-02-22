@@ -6,12 +6,11 @@ set script_dir = `cd $rootdir && pwd`
 
 source ${script_dir}/env.csh
 
-mkdir ${base_dir}/old
 set yyyy = $1
 
   cd ${base_dir}
   # mv $yyyy/* files to old/$yyyy/.
-  mkdir old/$yyyy
+  mkdir -p old/$yyyy
   mv $yyyy/* old/$yyyy/.
   # Delete "string " from the nc files if present
   cd old/$yyyy
@@ -42,6 +41,6 @@ set yyyy = $1
 ls -l $outdir/$yyyy*.nc
 
 # final checking the file size
-    echo $yyyy
-    ls -lh ${indir}/*.nc | grep "190M" # the original files
-    ls -lh ${outdir}/*.nc | grep "96M"  # outfiles created
+echo $yyyy
+ls -lh ${indir}/*.nc | grep "190M" # the original files
+ls -lh ${outdir}/*.nc | grep "96M"  # outfiles created

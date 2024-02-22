@@ -1,9 +1,25 @@
-#  # grain surface pressure
+#!/bin/csh -f
 
+#  # grain surface pressure
 #for 2024  jan
 
+#get directory of this script
+set rootdir = `dirname $0`
+set script_dir = `cd $rootdir && pwd`
+
+source ${script_dir}/env.csh
+
+#remove work_dir and recreate it
+if ( -e ${work_dir} ) then
+    rm -rf ${work_dir}
+endif
+
+mkdir ${work_dir}
+
+cd ${work_dir}
+
   set yyyy = 2024 # $1 
-  set infiles = /nbhome/fjz/anl_surf.001_pres.reg_tl319.2024010100_2024013118.zeng726459.nc # $2
+  set infiles = ${infilesDir}/anl_surf.001_pres.reg_tl319.2024010100_2024013118.zeng726459.nc # $2
   ls $infiles
   ncrcat -O $infiles psfile.nc || exit -1
   ncrename -v PRES_GDS4_SFC,PS psfile.nc
@@ -43,7 +59,7 @@
 @ mm = 1
 #while ( $mm <= 12) 
   set mon = `echo $mm | awk '{printf "%-5.2d", $1}'`
-  set outdir = /work/$user/jra55/$yyyy$mon
+  set outdir = ${base_dir}/$yyyy$mon
   if ( ! -e $outdir ) mkdir -p $outdir
   # rename
   foreach f (PS.$yyyy$mon.*.nc)
@@ -53,7 +69,7 @@
 #  @ mm ++
 #end
 
-  ls -l /work/$user/jra55/$yyyy??/PS.$yyyy??.*.nc
-  ls -l /work/$user/jra55/$yyyy??/PS.$yyyy??.*.nc | wc
+  ls -l ${base_dir}/$yyyy??/PS.$yyyy??.*.nc
+  ls -l ${base_dir}/$yyyy??/PS.$yyyy??.*.nc | wc
   # should have 1460 (365*4 ) for non-leap years
 

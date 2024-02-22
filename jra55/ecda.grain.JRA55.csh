@@ -11,7 +11,7 @@ source ${script_dir}/env.csh
 #remove work_dir and recreate it
 if ( -e ${work_dir} ) then
     rm -rf ${work_dir}
-end
+endif
 
 mkdir ${work_dir}
 
@@ -46,7 +46,7 @@ end
 
 #  grain T, U, V, Q to yyyymm files saved in ${base_dir}/$yyyy$mm
 
-cd ${tmp_dir}
+cd ${work_dir}
 
 echo $invar $yyyy $mm
 foreach invar (011_tmp 033_ugrd 034_vgrd 051_spfh)
@@ -56,7 +56,7 @@ foreach mm ($mms)
   if ($invar == 034_vgrd) set varnamein = VGRD_GDS4_HYBL
   if ($invar == 051_spfh) set varnamein = SPFH_GDS4_HYBL
 
-  set outdir = ${base_dir}/out/$yyyy$mm
+  set outdir = ${base_dir}/$yyyy$mm
   # check if outfiles exist
   set checkingfiles = `ls $outdir/$invar.*.nc | wc | awk '{print $1}'`
   if ( $checkingfiles >= 112 ) then

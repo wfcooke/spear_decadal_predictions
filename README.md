@@ -115,25 +115,20 @@ The 10-member prediction runs are conducted in two 5-member ensembles with the s
 
 ### run prediction experiment: i20240101 for members 01-05
 
-combine initial conditions for members 01-05.
-    set expt = SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
-    set resfile = the-2024-restart file created in 4. # also available on archive, e.g. /archive/fjz/SPEAR/$expt/restart/????0101.tar
-    set outfile = restart-file-2024 # e.g. /lustre/f2/dev/gfdl/Fanrong.Zeng/module_data/D_initCond/{$expt}_restart_20240101.tar
-    cd /lustre/f2/scratch/gfdl/Fanrong.Zeng/tmpdir
-    csh -f /lustre/f2/dev/gfdl/Fanrong.Zeng/module_data//combine.restart.5ees $resfile
-    tar -cf $outfile *
-    ls -l $outfile
+###combine initial conditions for members 01-05 and ens06-10.
+Set `restart_file` to the restart from the reanalysis run. 
+    
+    combine.restart.5ees
 
 ### xml/runscript  for prediction:  i20240101 members 01-05
- start from  /ncrc/home2/Fanrong.Zeng/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-18.xml
- add  <experiment name="i20240101" inherit="i20190101">
+ start from /autofs/ncrc-svm1_home1/Colleen.McHugh/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-21_C5.Colleen.xml
  set initCond to restart-file-2024 created above
 generate runscript using frerun.
 
 these are the commands used for 2023 predictions
 
-    module load fre/bronx-19
-    frerun  -x /ncrc/home2/Fanrong.Zeng/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-18.xml --platform=ncrc4.intel16 --qos=urgent --target=repro,openmp i20230101
+    module load fre/bronx-21
+    frerun  -x /autofs/ncrc-svm1_home1/Colleen.McHugh/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-21_C5.Colleen.xml --platform=ncrc5.intel-classic --qos=urgent --target=repro,openmp i20240101
     sbatch the runscript
 
 ### run prediction experiment: i20240101 for members 06-10

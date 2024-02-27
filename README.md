@@ -89,10 +89,13 @@ Run the combine script for January 2024.
 ### transfer to gaea
 gcp the files in $base_dir/{2023,2024} to gaea, /gpfs/f5/gfdl_sd/world-shared/Xiaosong.Yang/archive/ada_data/JRA55/2023
 
-##Extend ERSST monthly mean SST  to Jan 2024
+## Extend ERSST monthly mean SST  to Jan 2024
 
 ### download monthly mean ERSST SST up to January 2024
-Go to https://psl.noaa.gov/data/gridded/data.noaa.ersst.v5.html to download sst.mnmean.nc
+
+Set the `$base_dir` and `$archive_dir` varialbes in `ersst/env.csh` to specify where the data will be downloaded and transferred to.
+
+Run `ersst/download_ersst.csh` to download `sst.mnmean.nc` from https://psl.noaa.gov/data/gridded/data.noaa.ersst.v5.html.
 
 ### ersst file is on lat/lon grid,  run the script to regrid it unto SPEAR_LO ocean grid
     ersst/data_sst.mnmean.v5.spear_lo.csh
@@ -100,9 +103,9 @@ Go to https://psl.noaa.gov/data/gridded/data.noaa.ersst.v5.html to download sst.
 ### transfer to gaea
     gcp SPEAR_lo_tripolar.sst.nc gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/ersst.sst.mnmean.v5.nc
 
-##Extend reanalysis to dec. 2023
+## Extend reanalysis to dec. 2023
 
-The 10-members are run in two 5-member ensembles, SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst and SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10.
+The 10-members are run in two 5-member ensembles, `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst` and `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`.
 The runs  have completed jan1958-dec2022, and need to extend to dec.2023.
 
 ### expt: SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
@@ -114,29 +117,29 @@ take the jan.2023 initial conditions and transfer to gaea:
 ### re-generate runscript
 Login to gaea5X
     module load fre/bronx-21
-    frerun --platform=ncrc5.intel-classic --target=repro,openmp -x /autofs/ncrc-svm1_home2/Fanrong.Zeng/ecda_xml/spear_F/xml/SPEAR_experiments_Q50L33_c96_o1_HIST_jra55_B01_1958.C5.xml  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+    frerun --platform=ncrc5.intel-classic --target=repro,openmp -x xml/SPEAR_experiments_Q50L33_c96_o1_HIST_jra55_B01_1958.C5.xml  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
 
 ### submit the runscript
     sbatch /gpfs/f5/gfdl_sd/scratch/Fanrong.Zeng/SPEAR_experiments_Q/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst/ncrc5.intel-classic-repro-openmp/scripts/run/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
  
 ### setup and run members 06-10
-Same as for the members 01-05 but setup the runscript based on  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10
+Same as for the members 01-05 but setup the runscript based on  `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`
 The initial conditions are transferred to gaea via this command
     gcp  /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10/restart/20230101.tar gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10_restart_20230101.tar
 
-##Run 2024 decadal predictions from the Jan. 2024 initial conditions
+## Run 2024 decadal predictions from the Jan. 2024 initial conditions
 
 The 10-member prediction runs are conducted in two 5-member ensembles with the same experiment name i20240101 but under different directories.
 
 ### run prediction experiment: i20240101 for members 01-05
 
-###combine initial conditions for members 01-05 and ens06-10.
+### combine initial conditions for members 01-05 and ens06-10.
 Set `restart_file` to the restart from the reanalysis run. 
     
     combine.restart.5ees
 
 ### xml/runscript  for prediction:  i20240101 members 01-05
- start from /autofs/ncrc-svm1_home1/Colleen.McHugh/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-21_C5.Colleen.xml
+ start from `xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-21_C5.xml`
  set initCond to restart-file-2024 created above
 generate runscript using frerun.
 
@@ -147,4 +150,4 @@ these are the commands used for 2023 predictions
     sbatch the runscript
 
 ### run prediction experiment: i20240101 for members 06-10
-Following the same steps as for members 01-05. Make sure to start from the 20240101 restart file from expt: SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10
+Following the same steps as for members 01-05 using the xml `xml/SPEAR_experiments_K_DecPred_icJRA_ERSST_ens_06-10.bronx-21_C5.xml`. Make sure to start from the 20240101 restart file from expt: `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`

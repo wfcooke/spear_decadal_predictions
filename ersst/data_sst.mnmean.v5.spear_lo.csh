@@ -5,29 +5,28 @@
 #
 # Regrid obs files on latlon grid to SPEAR_LO tripolar grid
 
-# Location of thie script
-BIN_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+# Location of this script
+set rootdir = `dirname $0`
+set script_dir = `cd $rootdir && pwd`
 
-# Source the env.sh file for the current environment
-. ${BIN_DIR}/env.sh
+source ${script_dir}/env.csh
 
-tmp_dir=${BASE_DIR}/tmp
-raw_dir=${BASE_DIR}/raw
+set tmp_dir = ${base_dir}/tmp
 
 #remove the old tmp dir and recreate
-if [ -e ${tmp_dir} ] then
+if ( -e ${tmp_dir} ) then
     rm -rf ${tmp_dir}
-fi
+endif
 
 mkdir -p ${tmp_dir}
-if [ $? -ne 0 ] then
-    echo "Unable to create raw output directory $raw_dir"
+if ( $? != 0 ) then
+    echo "Unable to create directory $tmp_dir"
     exit 1
-fi
+endif
 
 cd ${tmp_dir}
 
-infile=${raw_dir}/sst.mnmean.nc
+set infile = ${raw_dir}/sst.mnmean.nc
 
 # fix time axis
 cdo settaxis,1854-01-16,12:00:00,1mon $infile infile.nc
@@ -50,12 +49,12 @@ EOF
 pyferret -script fill.jnl
 
 ### regrid SST file
-invar=sst
+set invar = sst
 
 #ncpdq -O -h -a -lat $infile infilelatlon.nc
 
-cp ${BIN_DIR}/data/ocean_hgrid.nc ocean_hgrid.nc
-cp ${BIN_DIR}/data/ocean_mosaic.LOAR2.nc ocean_mosaic.nc
+cp ${script_dir}/data/ocean_hgrid.nc ocean_hgrid.nc
+cp ${script_dir}/data/ocean_mosaic.LOAR2.nc ocean_mosaic.nc
 
 # create the mosiac file for the input file
 make_hgrid --grid_type regular_lonlat_grid --nxbnd 2 --nybnd 2 --xbnd 0.0,360.0 \
@@ -76,4 +75,4 @@ ncatted -O -a calendar,time,m,c,gregorian SPEAR_lo_tripolar.$invar.nc
 
 ls -l SPEAR_lo_tripolar.$invar.nc
 
-gcp -v -cd SPEAR_lo_tripolar.$invar.nc /archive/$USER/ersst/
+gcp -v -cd SPEAR_lo_tripolar.$invar.nc ${archive_dir}

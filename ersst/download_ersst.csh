@@ -1,22 +1,19 @@
-#!/bin/sh
+#!/bin/csh
 
-# Location of thie script
-BIN_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+# Location of this script
+set rootdir = `dirname $0`
+set script_dir = `cd $rootdir && pwd`
 
-# Source the env.sh file for the current environment
-. ${BIN_DIR}/env.sh
+source ${script_dir}/env.csh
 
-raw_dir=${BASE_DIR}/raw
-
-if [ ! -e ${raw_dir} ]
-then
+if ( ! -e ${raw_dir} ) then
     echo "Creating directory ${raw_dir}"
     mkdir -p ${raw_dir}
-    if [ $? -ne 0 ] then
+    if ( $? != 0 ) then
         echo "Unable to create raw output directory $raw_dir"
         exit 1
-    fi
-fi   
+    endif
+endif
 
 cd ${raw_dir}
 

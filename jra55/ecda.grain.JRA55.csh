@@ -109,7 +109,7 @@ foreach mm ( $mms )
   echo $yyyy $mm 
 foreach invar (011_tmp 033_ugrd 034_vgrd 051_spfh)
   echo  $invar
-  ls -lh ${base_dir}/out/$yyyy$mm/$invar.$yyyy$mm.*.nc | wc
+  ls -lh ${base_dir}/$yyyy$mm/$invar.$yyyy$mm.*.nc | wc
 end
 end
 

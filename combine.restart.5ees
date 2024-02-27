@@ -1,14 +1,19 @@
 #!/bin/csh -f
 
+module use -a /ncrc/home2/fms/local/modulefiles
+module load fre-nctools/2023.01.02
+
 set echo
 
+set yyyy = 2024
+
 set expt = SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
-set restart_file = /gpfs/f5/gfdl_sd/scratch/$USER/SPEAR_experiments_Q/${expt}/ncrc5.intel-classic-repro-openmp/restart/20240101.tar
+set restart_file = /gpfs/f5/gfdl_sd/scratch/$USER/SPEAR_experiments_Q/${expt}/ncrc5.intel-classic-repro-openmp/restart/${yyyy}0101.tar
 
 set ees = (ens_01 ens_02 ens_03 ens_04 ens_05)
 
 set out_dir = /gpfs/f5/gfdl_sd/proj-shared/$USER/SPEAR_decPred_IC
-set outfile = ${out_dir}/${expt}_restart_20240101.tar
+set outfile = ${out_dir}/${expt}_restart_${yyyy}0101.tar
 set tmpdir = /gpfs/f5/gfdl_sd/scratch/$USER/${expt}
 
 if ( ! -e ${out_dir} ) then

@@ -9,7 +9,7 @@ Download JRA-55 6hr Jan 2023 to Jan 2024 data
 Edit the `jra55/env.csh` file to specify the raw data `$infilesDir` and work directory `$work_dir`for the JRA55 data.
 
 ## download jra55 6hr surface pressure and atmospheric T, U, V, Q data
-Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/
+Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/ and move downloaded data to `$infilesDir`.
 
 ## download surface pressure data
 click on data access and scroll down to find the JRA-55 6-Hourly Model Resolution Surface Analysis Fields
@@ -48,7 +48,7 @@ Set the variable `$yyyy` in the script before running.
 
 Set the variable `$yyyy` in the script before running.
 
-    jra55/ecda.grain.JRA55.ps.jan.csh 2024
+    jra55/ecda.grain.JRA55.ps.jan.csh
  
 ### check the output files,
     ls  $base_dir/202[34]??/PS.202[34]??.*.nc
@@ -93,11 +93,11 @@ gcp the files in $base_dir/{2023,2024} to gaea, /gpfs/f5/gfdl_sd/world-shared/Xi
 
 ### download monthly mean ERSST SST up to January 2024
 
-Set the `$base_dir` and `$archive_dir` varialbes in `ersst/env.csh` to specify where the data will be downloaded and transferred to.
+Set the `$base_dir` and `$archive_dir` variables in `ersst/env.csh` to specify where the data will be downloaded and transferred to.
 
 Run `ersst/download_ersst.csh` to download `sst.mnmean.nc` from https://psl.noaa.gov/data/gridded/data.noaa.ersst.v5.html.
 
-### ersst file is on lat/lon grid,  run the script to regrid it unto SPEAR_LO ocean grid
+### ersst file is on lat/lon grid, run the script to regrid it unto SPEAR_LO ocean grid
     ersst/data_sst.mnmean.v5.spear_lo.csh
 
 ### transfer to gaea

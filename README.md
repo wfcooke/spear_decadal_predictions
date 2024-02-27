@@ -5,6 +5,9 @@ Feb. 2024 - Documentation from Fanrong Zeng
 Real-time decadal predictions are conducted annually at GFDL SD division. Each year by the end of February, the predictions are made and sent to WMO Lead Centre for Interannual to Decadal Prediction, an operational service that provides annually-updated multi-model decadal predictions. This article lists the commands to run the GFDL decadal predictions initialized from January 2024 with the SPEAR_LO model.
 Download JRA-55 6hr Jan 2023 to Jan 2024 data
 
+## Edit jra55/env.csh
+Edit the `jra55/env.csh` file to specify the raw data `$infilesDir` and work directory `$work_dir`for the JRA55 data.
+
 ## download jra55 6hr surface pressure and atmospheric T, U, V, Q data
 Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/
 
@@ -27,52 +30,64 @@ You may need to run the ncks command to set time as the record dimension,
 
 ## Pre-processing the downloaded JRA-55 6hr data
 
-### break the ps files into multiple 1-month files and save in /work/$user/jra55/yyyymm/.
+### break the ps files into multiple 1-month files.
 
 ### check the downloaded files for jan-dec 2023
-    ls -l anl_surf.0001_pres.reg*2023*_2023*.nc
+    ls -l $infilesDir/anl_surf.0001_pres.reg*2023*_2023*.nc
 
-### set yyyy in script and process the files
-    ecda.grain.JRA55.ps.1yr.csh
+### Process the files
+
+Set the variable `$yyyy` in the script before running.
+
+    jra55/ecda.grain.JRA55.ps.1yr.csh
  
 ### check the downloaded files for jan 2024
-    ls -l anl_surf.0001_pres.reg*2024*_2024*.nc # list of input files
+    ls -l $infilesDir/anl_surf.0001_pres.reg*2024*_2024*.nc # list of input files
  
 ### process the files
+
+Set the variable `$yyyy` in the script before running.
+
     jra55/ecda.grain.JRA55.ps.jan.csh 2024
  
 ### check the output files,
-    ls  /work/$user/jra55/202[34]??/PS.202[34]??.*.nc
+    ls  $base_dir/202[34]??/PS.202[34]??.*.nc
  
  should have 1460 (365*4 ) files  for non-leap years and 1464 files for leap years.
 
-### Process the  atmos files into 1-month files and save in /work/$user/jra55/yyyymm/.
+### Process the  atmos files into 1-month files.
 Each of the atmos files contains 10-day data.  Run the following script to create monthly files,
 
-    ecda.grain.JRA55.1yr.csh
+Set the `$yyyy` and `$months` variables in the script before running.
+
+    jra55/ecda.grain.JRA55.csh
 
 ### check the output files,
-    ls  /work/$user/jra55/202[34]??/{011_tmp,033_ugrd,034_vgrd,051_spfh}*202[34]??.*.nc
+    ls  $base_dir/202[34]??/{011_tmp,033_ugrd,034_vgrd,051_spfh}*202[34]??.*.nc
 
 ### combine the surface and atmospheric files
+
+Set the `$yyyy` variable in the script before running.
+
     jra55/run_combine_JRA55.csh
 
-### check the output files,
-ls  /work/$user/jra55/2023/*
+Run the combine script for January 2024.
 
-    ecda.combine.JRA55.all_vars.csh 2024 01
+    jra55/ecda.combine.JRA55.all_vars.csh 2024 01
+
 ### check the output files,
-    ls  /work/$user/jra55/2024/*
+    ls  $base_dir/2023/*
+    ls  $base_dir/2024/*
 
 ###  regrid the combined files onto SPEAR_LO atmos grid
     jra55/ecda.regrid.JRA55.csh 2023
     jra55/ecda.regrid.JRA55.csh 2024
 
 ### check the output files,
-    ls -l  /work/$user/jra55/{2023,2024} /*
+    ls -l  $base_dir/{2023,2024}/*
 
 ### transfer to gaea
-gcp the files in /work/$user/jra55/{2023,2024} to gaea, /gpfs/f5/gfdl_sd/world-shared/Xiaosong.Yang/archive/ada_data/JRA55/2023
+gcp the files in $base_dir/{2023,2024} to gaea, /gpfs/f5/gfdl_sd/world-shared/Xiaosong.Yang/archive/ada_data/JRA55/2023
 
 ##Extend ERSST monthly mean SST  to Jan 2024
 

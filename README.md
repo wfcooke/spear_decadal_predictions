@@ -34,7 +34,7 @@ You may need to run the ncks command to set time as the record dimension,
 
 Break the ps files into multiple 1-month files.
 
-#### Check the downloaded files for jan-dec 2023.
+#### Check the downloaded files for jan-dec 2023
 
     ls -l $infilesDir/anl_surf.0001_pres.reg*2023*_2023*.nc
 
@@ -53,20 +53,20 @@ Set the variable `$yyyy` in the script before running.
 
     jra55/ecda.grain.JRA55.ps.jan.csh
  
-#### check the output files,
+#### check the output files
     
     ls  $base_dir/202[34]??/PS.202[34]??.*.nc
  
  should have 1460 (365*4 ) files  for non-leap years and 1464 files for leap years.
 
-#### Process the  atmos files into 1-month files.
+#### Process the  atmos files into 1-month files
 Each of the atmos files contains 10-day data.  Run the following script to create monthly files,
 
 Set the `$yyyy` and `$months` variables in the script before running.
 
     jra55/ecda.grain.JRA55.csh
 
-#### check the output files,
+#### check the output files
     ls  $base_dir/202[34]??/{011_tmp,033_ugrd,034_vgrd,051_spfh}*202[34]??.*.nc
 
 #### combine the surface and atmospheric files
@@ -79,7 +79,7 @@ Run the combine script for January 2024.
 
     jra55/ecda.combine.JRA55.all_vars.csh 2024 01
 
-#### check the output files,
+#### check the output files
     ls  $base_dir/2023/*
     ls  $base_dir/2024/*
 
@@ -87,7 +87,7 @@ Run the combine script for January 2024.
     jra55/ecda.regrid.JRA55.csh 2023
     jra55/ecda.regrid.JRA55.csh 2024
 
-#### check the output files,
+#### check the output files
     ls -l  $base_dir/{2023,2024}/*
 
 #### transfer to gaea

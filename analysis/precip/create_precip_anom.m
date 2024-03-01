@@ -1,19 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+function create_precip_anom(year, work_dir, outdir)
 
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
-
-outdir='/local2/home/decadal_prediction/init_2024/';
-year=2024;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load /archive/cem/spear_decadal_climo_1991_2020/precip_clim_1991_2020.mat
 
-load precip_2024.mat
-precip_2024prediction_10yr=squeeze(precip_2024(:,1,:,:,:))-new_precip_clim;
-clear ans precip_2024
+load([work_dir 'precip_fcst.mat'], 'precip_fcst');
+precip_prediction_10yr=squeeze(precip_fcst(:,1,:,:,:))-new_precip_clim;
+clear ans precip_fcst
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -32,7 +28,7 @@ clear n yr
 
 fout=[outdir 'pr_Amon_GFDL-SPEAR_LO_s' num2str(year) 'Jan1st_' 'r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
 var_name='pr';
-sst_for=precip_2024prediction_10yr(ensemble,:,:,:);
+sst_for=precip_prediction_10yr(ensemble,:,:,:);
 time=time;
 ens=ensemble;
 lat=lat;
@@ -93,7 +89,5 @@ sst_for(isnan(sst_for)) = -9999.99;
 nc{varname}(:,:,:,:) = sst_for;
 
 close(nc);
-
-%nc_dump ( fout )
 
 end

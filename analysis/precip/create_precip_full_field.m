@@ -1,11 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+function create_precip_full_field(year,work_dir,outdir)
+
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
-outdir='/local2/home/decadal_prediction/init_2024/';
-year=2024;
-year_prev=2023;
+year_prev=year-1;
 
 for en=101:105
     enmeb=num2str(en); 
@@ -21,7 +19,7 @@ for en=101:105
          lon=f{'lon'}(:);
       close(f)  
    
-   precip_2024_ens1_5(en-100,year-year_prev,:,:,:)=tt.*3600.*24;
+   precip_ens1_5(en-100,year-year_prev,:,:,:)=tt.*3600.*24;
    clear tt
 
 end
@@ -44,7 +42,7 @@ for en=101:105
          lon=f{'lon'}(:);
       close(f)  
    
-   precip_2024_ens6_10(en-100,year-year_prev,:,:,:)=tt.*3600.*24;
+   precip_ens6_10(en-100,year-year_prev,:,:,:)=tt.*3600.*24;
    clear tt
 
 end
@@ -53,12 +51,12 @@ clear f sfile1 file tt enmeb
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-precip_2024(1:5,:,:,:,:)=precip_2024_ens1_5;
-clear precip_2024_ens1_5
-precip_2024(6:10,:,:,:,:)=precip_2024_ens6_10;
-clear precip_2024_ens6_10
+precip_fcst(1:5,:,:,:,:)=precip_ens1_5;
+clear precip_ens1_5
+precip_fcst(6:10,:,:,:,:)=precip_ens6_10;
+clear precip_ens6_10
 
-save precip_2024.mat
+save([work_dir 'precip_fcst.mat'], 'precip_fcst')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -85,7 +83,7 @@ clear n mon real_mon
 fout=[outdir 'pr_Amon_GFDL-SPEAR_LO_Initialization_yr' num2str(year) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
 
 var_name='pr';
-sst_for=precip_2024(ensemble,year-year_prev:year-year_prev,:,:,:);
+sst_for=precip_fcst(ensemble,year-year_prev:year-year_prev,:,:,:);
 initialization_year=initialization_year;
 time=time;
 ens=ensemble;

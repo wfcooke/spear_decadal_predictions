@@ -1,19 +1,21 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function create_t_ref_anom(year, work_dir, outdir)
 
-load reft_2024prediction_10yr.mat
+run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+load /archive/cem/spear_decadal_climo_1991_2020/reft_clim_1991_2020.mat
+
+load([work_dir 'reft_fcst.mat'], 'reft_fcst');
+reft_prediction_10yr=squeeze(reft_fcst(:,1,:,:,:))-new_reft_clim;
+clear ans reft_fcst
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for ensemble=1:10
 
 n=1;
-for yr=2024:2033
+for yr=year:year+9
     for mon=101:112
         real_mon=num2str(mon);
         time(n)=datenum([real_mon(2:3) '/01/' int2str(yr)])-datenum('01/01/1960');
@@ -23,17 +25,15 @@ end
 clear n yr
 
 
-fout=['tas_Amon_GFDL-SPEAR_LO_s2024Jan1st_' 'r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
+fout=[outdir 'tas_Amon_GFDL-SPEAR_LO_s' num2str(year) 'Jan1st_' 'r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
 
 var_name='tas';
-sst_for=reft_2024prediction_10yr(ensemble,:,:,:);
+sst_for=reft_prediction_10yr(ensemble,:,:,:);
 time=time;
 ens=ensemble;
 lat=lat;
 lon=lon;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nc = netcdf(fout,'clobber');
@@ -95,15 +95,3 @@ nc_dump ( fout )
 
 
 end
-
-
-
-
-
-
-
-
-
-
-
-

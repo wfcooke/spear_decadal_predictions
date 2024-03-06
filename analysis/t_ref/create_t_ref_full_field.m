@@ -1,51 +1,94 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+function create_t_ref_full_field(year, work_dir, outdir)
 
-load reft_2024.mat
+run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
+year_prev=year-1;
 
-for newnum=2024:1:2024
+for en=101:105
+    enmeb=num2str(en); 
 
-     for ensemble=1:1:10  
-       
+    yr=num2str(year);
+    file=['/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst/i' yr(1:4) '0101/pp_ens_' enmeb(2:3) '/atmos/ts/monthly/10yr/'];
+    sfile1=[file 'atmos.' num2str(year) '01' '-' num2str(year+9) '12' '.t_ref.nc'];
+    
+      f=netcdf(sfile1,'nowrite');
+         tt(1:120,:,:)=squeeze(f{'t_ref'}(:,:,:));
+         lat=f{'lat'}(:);
+         lon=f{'lon'}(:);
+      close(f)  
+ 
+   reft_ens1_5(en-100,year-year_prev,:,:,:)=tt;
+   clear tt
+
+end
+clear lead sfile2 en 
+clear f sfile1 file tt enmeb
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for en=101:105
+    enmeb=num2str(en); 
+
+    yr=num2str(year);
+    file=['/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst_ens_06-10/i' yr(1:4) '0101/pp_ens_' enmeb(2:3) '/atmos/ts/monthly/10yr/'];
+    sfile1=[file 'atmos.' num2str(year) '01' '-' num2str(year+9) '12' '.t_ref.nc'];
+    
+      f=netcdf(sfile1,'nowrite');
+         tt(1:120,:,:)=squeeze(f{'t_ref'}(:,:,:));
+         lat=f{'lat'}(:);
+         lon=f{'lon'}(:);
+      close(f)  
+ 
+   reft_ens6_10(en-100,year-year_prev,:,:,:)=tt;
+   clear tt
+
+end
+clear lead sfile2 en 
+clear f sfile1 file tt enmeb
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+reft_fcst(1:5,:,:,:,:)=reft_ens1_5;
+clear reft_ens1_5
+reft_fcst(6:10,:,:,:,:)=reft_ens6_10;
+clear reft_ens6_10
+clear ans
+
+save([work_dir 'reft_fcst.mat'], 'reft_fcst')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for ensemble=1:1:10
+
 n=1;
-for yr=newnum:newnum+9
-    year=int2str(yr);
+for yr=year:year+9
+    year_str=int2str(yr);
     for mon=101:112
         real_mon=num2str(mon);
-        time(n)=datenum([real_mon(2:3) '/01/' year])-datenum('01/01/1960');
+        time(n)=datenum([real_mon(2:3) '/01/' year_str])-datenum('01/01/1960');
         n=n+1;
     end
 end
 clear n yr mon real_mon
 
-
 n=1;
-for yr=newnum:newnum
-    initialization_year(n)=datenum(['01/01/' int2str(yr)])-datenum('01/01/1960');
-    n=n+1;
-end
+initialization_year(n)=datenum(['01/01/' num2str(year)])-datenum('01/01/1960');
+n=n+1;
+
 clear n yr mon real_mon
 
 
-fout=['tas_Amon_GFDL-SPEAR_LO_Initialization_yr' num2str(newnum) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
+fout=[outdir 'tas_Amon_GFDL-SPEAR_LO_Initialization_yr' num2str(year) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
 
 var_name='tas';
-sst_for=reft_2024(ensemble,newnum-2023:newnum-2023,:,:,:);
+sst_for=reft_fcst(ensemble,year-year_prev:year-year_prev,:,:,:);
 initialization_year=initialization_year;
 time=time;
 ens=ensemble;
 lat=lat;
 lon=lon;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nc = netcdf(fout,'clobber');
@@ -111,16 +154,5 @@ nc{varname}(:,:,:,:,:) = sst_for;
 
 close(nc);
 
-
-nc_dump ( fout )
-
-     end
-
 end
-
-
-
-
-
-
 

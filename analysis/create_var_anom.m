@@ -1,13 +1,41 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function create_t_ref_anom(year, work_dir, outdir)
+function create_var_anom(var, year, work_dir, outdir)
 
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load /archive/cem/spear_decadal_climo_1991_2020/reft_clim_1991_2020.mat
+if strcmp(var,'t_ref') == 1
+    clim_var_name='new_reft_clim';
+    var1='reft';
+    var_name='tas';
+    long_name = 'air_temperature_anomaly_at_2m';
+    unit = 'K';
+elseif strcmp(var, 't_surf') == 1
+    clim_var_name='new_airt_clim';
+    var1='airt';
+    var_name='ts';
+    long_name = 'Surface temperature anomaly';
+    unit = 'K';
+elseif strcmp(var, 'slp') == 1
+    clim_var_name='new_slp_clim';
+    var1='slp';
+    var_name='psl';
+    long_name = 'air_pressure_anomaly_at_sea_level';
+    unit = 'hPa';
+elseif strcmp(var, 'precip') == 1
+    clim_var_name='new_precip_clim';
+    var1='precip';
+    var_name='pr';
+    long_name='precipitation_flux_anomaly';
+    unit='mm/day';
+end 
 
-load([work_dir 'reft_fcst.mat'], 'reft_fcst');
-reft_prediction_10yr=squeeze(reft_fcst(:,1,:,:,:))-new_reft_clim;
+
+clim_file=load(['/archive/cem/spear_decadal_climo_1991_2020/' var1 '_clim_1991_2020.mat']);
+clim_var=clim_file.(clim_var_name);
+
+load([work_dir var '_fcst.mat'], 'var_fcst');
+var_prediction_10yr=squeeze(var_fcst(:,1,:,:,:))-clim_var;
 clear ans reft_fcst
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,15 +52,13 @@ for yr=year:year+9
 end
 clear n yr
 
+fout=[outdir var_name '_Amon_GFDL-SPEAR_LO_s' num2str(year) 'Jan1st_' 'r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
 
-fout=[outdir 'tas_Amon_GFDL-SPEAR_LO_s' num2str(year) 'Jan1st_' 'r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
-
-var_name='tas';
-sst_for=reft_prediction_10yr(ensemble,:,:,:);
+sst_for=var_prediction_10yr(ensemble,:,:,:);
 time=time;
 ens=ensemble;
-lat=lat;
-lon=lon;
+lat=clim_file.('lat');
+lon=clim_file.('lon');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -75,18 +101,13 @@ ncatt('long_name','char','longitude',nc{'longitude'})
 ncatt('axis','char','X',nc{'longitude'});
 nc{'longitude'}(:) = lon;
 
-% The variable we want to record is in the Matlab field C but we have to give it a name and defime metadatas for the cdf file:
-varname = var_name;
-long_name = 'air_temperature_anomaly_at_2m';
-unit = 'K'; % for example of course
-
 % And now we write it:
-ncvar(varname,'float',{'ENS','time','latitude','longitude'},nc); % we need to define axis of the field
-ncatt('long_name','char',long_name,nc{varname}); % Give it the long_name
-ncatt('units','char',unit,nc{varname}); % The unit
-ncatt('FillValue_','float',-9999.99,nc{varname}); % Missing var fill value
+ncvar(var_name,'float',{'ENS','time','latitude','longitude'},nc); % we need to define axis of the field
+ncatt('long_name','char',long_name,nc{var_name}); % Give it the long_name
+ncatt('units','char',unit,nc{var_name}); % The unit
+ncatt('FillValue_','float',-9999.99,nc{var_name}); % Missing var fill value
 sst_for(isnan(sst_for)) = -9999.99;
-nc{varname}(:,:,:,:) = sst_for;
+nc{var_name}(:,:,:,:) = sst_for;
 
 close(nc);
 

@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function create_t_ref_full_field(year, work_dir, outdir)
+function create_var_full_field(var, year, work_dir, outdir)
 
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
@@ -10,15 +10,19 @@ for en=101:105
 
     yr=num2str(year);
     file=['/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst/i' yr(1:4) '0101/pp_ens_' enmeb(2:3) '/atmos/ts/monthly/10yr/'];
-    sfile1=[file 'atmos.' num2str(year) '01' '-' num2str(year+9) '12' '.t_ref.nc'];
+    sfile1=[file 'atmos.' num2str(year) '01' '-' num2str(year+9) '12' '.' var '.nc'];
     
       f=netcdf(sfile1,'nowrite');
-         tt(1:120,:,:)=squeeze(f{'t_ref'}(:,:,:));
+         tt(1:120,:,:)=squeeze(f{var}(:,:,:));
          lat=f{'lat'}(:);
          lon=f{'lon'}(:);
       close(f)  
- 
-   reft_ens1_5(en-100,year-year_prev,:,:,:)=tt;
+
+   if strcmp(var, 'precip') == 1
+        var_ens1_5(en-100,year-year_prev,:,:,:)=tt.*3600.*24;
+   else
+        var_ens1_5(en-100,year-year_prev,:,:,:)=tt;
+   end
    clear tt
 
 end
@@ -32,15 +36,19 @@ for en=101:105
 
     yr=num2str(year);
     file=['/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst_ens_06-10/i' yr(1:4) '0101/pp_ens_' enmeb(2:3) '/atmos/ts/monthly/10yr/'];
-    sfile1=[file 'atmos.' num2str(year) '01' '-' num2str(year+9) '12' '.t_ref.nc'];
+    sfile1=[file 'atmos.' num2str(year) '01' '-' num2str(year+9) '12' '.' var '.nc'];
     
       f=netcdf(sfile1,'nowrite');
-         tt(1:120,:,:)=squeeze(f{'t_ref'}(:,:,:));
+         tt(1:120,:,:)=squeeze(f{var}(:,:,:));
          lat=f{'lat'}(:);
          lon=f{'lon'}(:);
       close(f)  
  
-   reft_ens6_10(en-100,year-year_prev,:,:,:)=tt;
+   if strcmp(var, 'precip') == 1
+        var_ens6_10(en-100,year-year_prev,:,:,:)=tt.*3600.*24;
+   else
+        var_ens6_10(en-100,year-year_prev,:,:,:)=tt;
+   end
    clear tt
 
 end
@@ -49,13 +57,13 @@ clear f sfile1 file tt enmeb
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-reft_fcst(1:5,:,:,:,:)=reft_ens1_5;
-clear reft_ens1_5
-reft_fcst(6:10,:,:,:,:)=reft_ens6_10;
-clear reft_ens6_10
+var_fcst(1:5,:,:,:,:)=var_ens1_5;
+clear var_ens1_5
+var_fcst(6:10,:,:,:,:)=var_ens6_10;
+clear var_ens6_10
 clear ans
 
-save([work_dir 'reft_fcst.mat'], 'reft_fcst')
+save([work_dir var '_fcst.mat'], 'var_fcst')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -78,11 +86,30 @@ n=n+1;
 
 clear n yr mon real_mon
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%output variables
+if strcmp(var, 't_ref') == 1 
+    var_name='tas';
+    long_name = 'air temperature at 2m';
+    unit = 'K';
+elseif strcmp(var, 't_surf') == 1
+    var_name='ts';
+    long_name = 'Surface temperature';
+    unit = 'K';
+elseif strcmp(var, 'slp') == 1
+    var_name='psl';
+    long_name = 'air_pressure_at_sea_level';
+    unit = 'hPa';
+elseif strcmp(var, 'precip') == 1
+    var_name='pr';
+    long_name='precipitation_flux';
+    unit='mm/day';
+end
 
-fout=[outdir 'tas_Amon_GFDL-SPEAR_LO_Initialization_yr' num2str(year) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
 
-var_name='tas';
-sst_for=reft_fcst(ensemble,year-year_prev:year-year_prev,:,:,:);
+fout=[outdir var_name '_Amon_GFDL-SPEAR_LO_Initialization_yr' num2str(year) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
+
+sst_for=var_fcst(ensemble,year-year_prev:year-year_prev,:,:,:);
 initialization_year=initialization_year;
 time=time;
 ens=ensemble;
@@ -139,18 +166,13 @@ ncatt('long_name','char','longitude',nc{'longitude'})
 ncatt('axis','char','X',nc{'longitude'});
 nc{'longitude'}(:) = lon;
 
-% The variable we want to record is in the Matlab field C but we have to give it a name and defime metadatas for the cdf file:
-varname = var_name;
-long_name = 'air temperature at 2m';
-unit = 'K'; % for example of course
-
 % And now we write it:
-ncvar(varname,'float',{'ENS','initializationyear','time','latitude','longitude'},nc); % we need to define axis of the field
-ncatt('long_name','char',long_name,nc{varname}); % Give it the long_name
-ncatt('units','char',unit,nc{varname}); % The unit
-ncatt('FillValue_','float',-9999.99,nc{varname}); % Missing var fill value
+ncvar(var_name,'float',{'ENS','initializationyear','time','latitude','longitude'},nc); % we need to define axis of the field
+ncatt('long_name','char',long_name,nc{var_name}); % Give it the long_name
+ncatt('units','char',unit,nc{var_name}); % The unit
+ncatt('FillValue_','float',-9999.99,nc{var_name}); % Missing var fill value
 sst_for(isnan(sst_for)) = -9999.99;
-nc{varname}(:,:,:,:,:) = sst_for;
+nc{var_name}(:,:,:,:,:) = sst_for;
 
 close(nc);
 

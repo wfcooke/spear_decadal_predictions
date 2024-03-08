@@ -1,44 +1,89 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+function create_ext_full_field(year, work_dir, outdir)
 
-load ext_2024.mat
-ext_2024(abs(ext_2024)>1000000)=NaN;
+run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
+
+year_prev=year-1;
+
+for en=101:105
+    enmeb=num2str(en); 
+
+    yr=num2str(year);
+    file=['/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst/i' yr(1:4) '0101/pp_ens_' enmeb(2:3) '/ice/ts/monthly/10yr/'];
+    sfile1=[file 'ice.' num2str(year) '01' '-' num2str(year+9) '12' '.EXT.nc'];
+    
+      f=netcdf(sfile1,'nowrite');
+         tt(1:120,:,:)=squeeze(f{'EXT'}(:,:,:));
+         lat=f{'yt'}(:);
+         lon=f{'xt'}(:);
+      close(f)  
+   
+      ext_ens1_5(en-100,year-2023,:,:,:)=tt;
+      clear tt
 
 
-for newnum=2024:1:2024
+end
+clear lead sfile2 en 
+clear yr f sfile1 file tt enmeb
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for en=101:105
+    enmeb=num2str(en); 
+
+    yr=num2str(year);
+    file=['/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst_ens_06-10/i' yr(1:4) '0101/pp_ens_' enmeb(2:3) '/ice/ts/monthly/10yr/'];
+    sfile1=[file 'ice.' num2str(year) '01' '-' num2str(year+9) '12' '.EXT.nc'];
     
-    
-  for ensemble=1:1:10 
-    
+      f=netcdf(sfile1,'nowrite');
+         tt(1:120,:,:)=squeeze(f{'EXT'}(:,:,:));
+         lat=f{'yT'}(:);
+         lon=f{'xT'}(:);
+      close(f)  
+   
+      ext_ens6_10(en-100,year-2023,:,:,:)=tt;
+      clear tt
+
+
+end
+clear lead sfile2 en 
+clear yr f sfile1 file tt enmeb
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ext_fcst(1:5,:,:,:,:)=ext_ens1_5;
+clear ext_ens1_5
+
+ext_fcst(6:10,:,:,:,:)=ext_ens6_10;
+clear ext_ens6_10
+
+save([work_dir 'ext_fcst.mat'], 'ext_fcst')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ext_fcst(abs(ext_fcst)>1000000)=NaN;
+
+for ensemble=1:1:10
 
 n=1;
-for yr=newnum:newnum+9
-    year=int2str(yr);
+for yr=year:year+9
+    year_str=int2str(yr);
     for mon=101:112
         real_mon=num2str(mon);
-        time(n)=datenum([real_mon(2:3) '/01/' year])-datenum('01/01/1960');
+        time(n)=datenum([real_mon(2:3) '/01/' year_str])-datenum('01/01/1960');
         n=n+1;
     end
 end
 clear n yr mon real_mon
 
+n=1;    
+initialization_year(n)=datenum(['01/01/' num2str(year)])-datenum('01/01/1960');
 
-n=1;
-for yr=newnum:newnum
-    initialization_year(n)=datenum(['01/01/' int2str(yr)])-datenum('01/01/1960');
-    n=n+1;
-end
 clear n yr mon real_mon
 
-fout=['siconc_Imon_GFDL-SPEAR_LO_Initialization_yr' num2str(newnum) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
+fout=[outdir 'siconc_Imon_GFDL-SPEAR_LO_Initialization_yr' num2str(year) '_10yr_prediction_r' num2str(ensemble) 'i1p1f1.nc'];
 var_name='siconc';
-sst_for=ext_2024(ensemble,newnum-2023:newnum-2023,:,:,:);
+sst_for=ext_fcst(ensemble,year-year_prev:year-year_prev,:,:,:);
 % clear ext_1961_2020
 initialization_year=initialization_year;
 time=time;
@@ -46,8 +91,6 @@ ens=ensemble;
 lat=lat;
 lon=lon;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nc = netcdf(fout,'clobber');
@@ -101,7 +144,7 @@ nc{'longitude'}(:) = lon;
 % The variable we want to record is in the Matlab field C but we have to give it a name and defime metadatas for the cdf file:
 varname = var_name;
 long_name = 'sea ice area fraction';
-unit = '1'; % for example of course
+unit = '1';
 
 % And now we write it:
 ncvar(varname,'float',{'ENS','initializationyear','time','latitude','longitude'},nc); % we need to define axis of the field
@@ -113,38 +156,5 @@ nc{varname}(:,:,:,:,:) = sst_for;
 
 close(nc);
 
-
-nc_dump ( fout )
-
-  end
-
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

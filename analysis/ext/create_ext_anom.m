@@ -1,19 +1,21 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function create_ext_anom(year, workdir, outdir)
 
-load ext_2024prediction_10yr.mat
+run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+load /archive/cem/spear_decadal_climo_1991_2020/ext_clim_1991_2020.mat
+
+load([workdir 'ext_fcst.mat'])
+
+ext_prediction_10yr=squeeze(ext_fcst(:,1,:,:,:))-new_ext_clim;
+clear ans ext_fcst
 
 
 for ensemble=1:10
 
 n=1;
-for yr=2024:2033
+for yr=year:year+9
     for mon=101:112
         real_mon=num2str(mon);
         time(n)=datenum([real_mon(2:3) '/01/' int2str(yr)])-datenum('01/01/1960');
@@ -22,17 +24,15 @@ for yr=2024:2033
 end
 clear n yr
 
-fout=['siconc_Imon_GFDL-SPEAR_LO_s2024Jan1st_r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
+fout=[outdir 'siconc_Imon_GFDL-SPEAR_LO_s' num2str(year) 'Jan1st_r' num2str(ensemble) 'i1p1f1' '_gn_climatology-1991-2020.nc'];
 
 var_name='siconc';
-sst_for=ext_2024prediction_10yr(ensemble,:,:,:);
+sst_for=ext_prediction_10yr(ensemble,:,:,:);
 time=time;
 ens=ensemble;
 lat=lat;
 lon=lon;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nc = netcdf(fout,'clobber');
@@ -88,26 +88,6 @@ nc{varname}(:,:,:,:) = sst_for;
 
 close(nc);
 
-
-nc_dump ( fout )
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

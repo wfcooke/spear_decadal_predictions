@@ -1,16 +1,17 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-clear all
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function create_amoc_anom(year, workdir, outdir)
 
-load amoc_2024prediction_10yr.mat
+run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
+
+load /archive/cem/spear_decadal_climo_1991_2020/amoc_clim_1991_2020.mat
+
+load ([workdir 'anmoc_fcst.mat'], 'anmoc_fcst');
+
+amoc_prediction_10yr=squeeze(anmoc_fcst(:,1,:,:,:))-new_amoc_clim;
+clear ans anmoc_fcst
 
 n=1;
-for yr=2024:2033
+for yr=year:year+9
     for mon=101:112
         real_mon=num2str(mon);
         time(n)=datenum([real_mon(2:3) '/01/' int2str(yr)])-datenum('01/01/1960');
@@ -19,18 +20,16 @@ for yr=2024:2033
 end
 clear n yr
 
-fout='msftmyz_Omon_GFDL-SPEAR_LO_s2024Jan1st_10ensembles_gn_climatology-1991-2020.nc';
+fout=[outdir 'msftmyz_Omon_GFDL-SPEAR_LO_s' num2str(year) 'Jan1st_10ensembles_gn_climatology-1991-2020.nc'];
 var_name='msftmyz';
-sst_for=amoc_2024prediction_10yr/1e+6;
-clear amoc_2024prediction_10yr
+sst_for=amoc_prediction_10yr/1e+6;
+clear amoc_prediction_10yr
 time=time;
 ens=1:1:10;
 depth=depth;
 lat=lat;
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nc = netcdf(fout,'clobber');
@@ -86,22 +85,5 @@ nc{varname}(:,:,:,:) = sst_for;
 
 close(nc);
 
-
 nc_dump ( fout )
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

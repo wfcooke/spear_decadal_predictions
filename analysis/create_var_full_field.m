@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function create_var_full_field(var, year, work_dir, outdir)
+function create_var_full_field(var, year, workdir, outdir)
 
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
@@ -63,7 +63,7 @@ var_fcst(6:10,:,:,:,:)=var_ens6_10;
 clear var_ens6_10
 clear ans
 
-save([work_dir var '_fcst.mat'], 'var_fcst')
+save([workdir var '_fcst.mat'], 'var_fcst')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

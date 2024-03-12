@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function create_var_anom(var, year, work_dir, outdir)
+function create_var_anom(var, year, workdir, outdir)
 
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
@@ -34,7 +34,7 @@ end
 clim_file=load(['/archive/cem/spear_decadal_climo_1991_2020/' var1 '_clim_1991_2020.mat']);
 clim_var=clim_file.(clim_var_name);
 
-load([work_dir var '_fcst.mat'], 'var_fcst');
+load([workdir var '_fcst.mat'], 'var_fcst');
 var_prediction_10yr=squeeze(var_fcst(:,1,:,:,:))-clim_var;
 clear ans reft_fcst
 

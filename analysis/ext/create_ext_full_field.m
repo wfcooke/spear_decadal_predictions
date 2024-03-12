@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function create_ext_full_field(year, work_dir, outdir)
+function create_ext_full_field(year, workdir, outdir)
 
 run /home/Oar.Gfdl.Nmme/argo/share/matlab/startup
 
@@ -57,7 +57,7 @@ clear ext_ens1_5
 ext_fcst(6:10,:,:,:,:)=ext_ens6_10;
 clear ext_ens6_10
 
-save([work_dir 'ext_fcst.mat'], 'ext_fcst')
+save([workdir 'ext_fcst.mat'], 'ext_fcst')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

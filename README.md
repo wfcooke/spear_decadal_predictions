@@ -3,21 +3,16 @@ Feb. 2024 - Documentation from Fanrong Zeng
 # Step-by-step guide to running SPEAR decadal prediction experiments
 
 Real-time decadal predictions are conducted annually at GFDL SD division. Each year by the end of February, the predictions are made and sent to WMO Lead Centre for Interannual to Decadal Prediction, an operational service that provides annually-updated multi-model decadal predictions. This article lists the commands to run the GFDL decadal predictions initialized from January 2024 with the SPEAR_LO model.
-Download JRA-55 6hr Jan 2023 to Jan 2024 data
 
 ## Download and process JRA55 data
 
 #### Edit jra55/env.csh
 Edit the `jra55/env.csh` file to specify the raw data `$infilesDir` and work directory `$work_dir`for the JRA55 data.
 
-#### download jra55 6hr surface pressure and atmospheric T, U, V, Q data
-Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/ and move downloaded data to `$infilesDir`.
-
 #### download surface pressure data
-click on data access and scroll down to find the JRA-55 6-Hourly Model Resolution Surface Analysis Fields
-downloaded surface pressure files,  e.g.  anl_surf.001_pres.reg_tl319.2022050100_2022053118-319.2022120100_2022123118.zeng613294.nc.tar
+Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/ and click on data access. Scroll down to find the JRA-55 6-Hourly Model Resolution Surface Analysis Fields. Make sure to select converted files to download the netcdf format files.
 
-make sure to select converted files to download the netcdf format files.
+Move downloaded data to `$infilesDir` specified in `jra55/env.csh`.  
 
 #### download atmospheric data
 Using the same steps to download the atmospheric U, V, T, and Q data by clicking on JRA-55 6-Hourly Model Resolution Model Level Analysis Fields
@@ -30,9 +25,7 @@ You may need to run the ncks command to set time as the record dimension,
 
     ncks -O --mk_rec_dmn initial_time0_hours  in.nc out.nc
 
-#### Pre-processing the downloaded JRA-55 6hr data
-
-Break the ps files into multiple 1-month files.
+#### Pre-processing the downloaded ps files
 
 #### Check the downloaded files for jan-dec 2023
 
@@ -120,7 +113,9 @@ take the jan.2023 initial conditions and transfer to gaea:
 
 #### re-generate runscript
 Login to gaea5X
+    
     module load fre/bronx-21
+    
     frerun --platform=ncrc5.intel-classic --target=repro,openmp -x xml/SPEAR_experiments_Q50L33_c96_o1_HIST_jra55_B01_1958.C5.xml  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
 
 #### submit the runscript
@@ -129,6 +124,7 @@ Login to gaea5X
 #### setup and run members 06-10
 Same as for the members 01-05 but setup the runscript based on  `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`
 The initial conditions are transferred to gaea via this command
+    
     gcp  /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10/restart/20230101.tar gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10_restart_20230101.tar
 
 ## Run 2024 decadal predictions from the Jan. 2024 initial conditions
@@ -152,3 +148,34 @@ These are the commands used for 2023 predictions
 
 ### run prediction experiment: i20240101 for members 06-10
 Following the same steps as for members 01-05 using the xml `xml/SPEAR_experiments_K_DecPred_icJRA_ERSST_ens_06-10.bronx-21_C5.xml`. Make sure to start from the 20240101 restart file from expt: `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`
+
+## Prepare and submit the output
+
+From Liping Zhang.
+
+The Met Office asks for 6 variables: surface temperature, air temperature, precipitation, sea level pressure, sea ice extent, and AMOC. For each variable two sets of files are created and submitted, the full forecast field and anomaly field.
+
+The GFDL pp components and variables used are:
+- atmos t_surf
+- atmos t_ref
+- atmos precip
+- atmos slp
+- ice EXT
+- ocean_z vh
+
+The January 2024 prediction pp directories are: `/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst/i20240101/` and `/archive/cem/SPEAR_lo/fcst_hist/D_jra_ersst_ens_06-10/i20240101/`.
+
+Edit `analysis/env.csh` to specify where the intermediate files (`$work_dir`) and the NetCDF files will be saved (`$out_dir`).
+
+Run the following scripts to create the output files from the GFDL pp files:
+
+- For atmospheric variables t_surf, t_ref, precip, and slp:
+    `analysis/run_atmos.csh`
+
+- For sea ice:
+    `analysis/run_ext.csh`
+
+- For AMOC:
+    `analysis/run_amoc.csh`
+
+The data is then uploaded to a google drive and sent to the Met Office.

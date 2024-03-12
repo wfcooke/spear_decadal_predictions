@@ -220,7 +220,7 @@ configuration.
     <!-- GFDL Analysis/PP Platforms -->
 
     <platform name="gfdl.postprocess">
-      <freVersion>bronx-20</freVersion>
+      <freVersion>$(FRE_VERSION)</freVersion>
 
       <property name="NB_ROOT" value="/nbhome/$USER/$(FRE_STEM)$(DEBUGLEVEL)/$(name)"/>
       <property name="F2003_FLAGS" value="-DINTERNAL_FILE_NML"/>
@@ -3493,7 +3493,7 @@ set nyblocks = $dummy
     </production>
   </runtime>
   <postProcess>
-      <xi: include xpointer="xpointer(//freInclude[@name='SPEAR_c96_decadal_ensemble']/postProcess/node())"/>
+      <xi:include xpointer="xpointer(//freInclude[@name='SPEAR_c96_decadal_ensemble']/postProcess/node())"/>
   </postProcess>
 </experiment>
 

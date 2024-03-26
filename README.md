@@ -31,20 +31,15 @@ You may need to run the ncks command to set time as the record dimension,
 
     ls -l $infilesDir/anl_surf.0001_pres.reg*2023*_2023*.nc
 
-#### Process the files
-
-Set the variable `$yyyy` in the script before running.
-
-    jra55/ecda.grain.JRA55.ps.1yr.csh
- 
 #### Check the downloaded files for jan 2024
+
     ls -l $infilesDir/anl_surf.0001_pres.reg*2024*_2024*.nc
- 
-#### Process the files
 
-Set the variable `$yyyy` in the script before running.
+#### Process the files for 2023 and January 2024
 
-    jra55/ecda.grain.JRA55.ps.jan.csh
+Set the variables `$yyyy` and `$months` in the script before running.
+
+    jra55/ecda.grain.JRA55.ps.csh
  
 #### Check the output files
     

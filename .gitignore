@@ -1,2 +1,5 @@
 jra55/pyferret-ferret-diffs.ipynb
 jra3q/log
+jra3q/submit_jobs/submit_jra3q_extract_mm.csh
+jra3q/submit_jobs/submit_jra3q_combine_mm.csh
+jra3q/submit_jobs/submit_jra3q_regrid_mm.csh

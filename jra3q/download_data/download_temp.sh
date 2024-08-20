@@ -1,19 +1,12 @@
 #! /bin/sh
-#
-# Experienced Wget Users: add additional command-line flags here
-#   Use the -r (--recursive) option with care
-set opts = "-N"
-#
-# If you get a certificate verification error (version 1.10 or higher),
-# uncomment the following line:
-#set cert_opt = "--no-check-certificate"
-#
 
+script_dir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+. ${script_dir}/env.sh
 
 var="0_0_0.tmp-hyb-an-gauss"
 dir_var="temp"
 
-data_dir=/archive/cem/jra3q/${dir_var}
+data_dir=${archive_dir}/${dir_var}
 
 if [ ! -d ${data_dir} ]; then
     echo "Creating ${data_dir}"

@@ -80,7 +80,6 @@ SPEAR_c192_omlp25_Control_2010_A01
 
   <property name="FYEAR" value="2019"/>
   <property name="FMON" value="01"/>
-  <property name="PP_START_YEAR" value="2019"/>
 
   <!--The following properties need to be set only if the user wants to monitor the run progress at MDBI
       and are not needed for the run or post-processing -->   
@@ -2764,46 +2763,46 @@ cd ..
       <!--By default a refineDiag script causes the annual data to be unpacked and saved in /ptmp/$USER-->
       <refineDiag script="$(includeDir)/refineDiag/dummy_refineDiag.csh,$(includeDir)/refineDiag/SPEAR_refineDiag.csh"/>
       <!--PostProcessing component models-->
-      <component type="atmos_daily" zInterp="ncep" start="$(PP_START_YEAR)" source="atmos_daily" sourceGrid="atmos-cubedsphere" xyInterp="180,288">
+      <component type="atmos_daily" zInterp="ncep" source="atmos_daily" sourceGrid="atmos-cubedsphere" xyInterp="180,288">
         <timeSeries freq="daily" source="atmos_daily" chunkLength="$(CHUNK_LENGTH_A)"/>
       </component>
-      <component type="atmos" zInterp="ncep" start="$(PP_START_YEAR)" source="atmos_month" sourceGrid="atmos-cubedsphere" xyInterp="180,288">
+      <component type="atmos" zInterp="ncep" source="atmos_month" sourceGrid="atmos-cubedsphere" xyInterp="180,288">
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_B)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_B)"/>
       </component>
-     <component type="land" source="land_month" start="$(PP_START_YEAR)" interpMethod="conserve_order1" sourceGrid="land-cubedsphere" xyInterp="180,288">
+     <component type="land" source="land_month" interpMethod="conserve_order1" sourceGrid="land-cubedsphere" xyInterp="180,288">
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_B)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_B)"/>
      </component>
-     <component type="ice_daily" start="$(PP_START_YEAR)" sourceGrid="ocean-tripolar">
+     <component type="ice_daily" sourceGrid="ocean-tripolar">
 	<timeSeries freq="daily" source="ice_daily" chunkLength="$(CHUNK_LENGTH_A)"/>
       </component>
-      <component type="ice" start="$(PP_START_YEAR)" sourceGrid="ocean-tripolar">
+      <component type="ice" sourceGrid="ocean-tripolar">
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)" source="ice_month"/>
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_B)" source="ice_month"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_B)"/>
       </component>
-      <component type="ocean" start="$(PP_START_YEAR)" sourceGrid="ocean-tripolar">
+      <component type="ocean" sourceGrid="ocean-tripolar">
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)" source="ocean_month"/>
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_B)" source="ocean_month"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_B)"/>
       </component>
-      <component type="ocean_daily" start="$(PP_START_YEAR)" sourceGrid="ocean-tripolar">
+      <component type="ocean_daily" sourceGrid="ocean-tripolar">
         <timeSeries freq="daily" source="ocean_daily" chunkLength="$(CHUNK_LENGTH_A)"/>
       </component>
-      <component type="ocean_rho2" start="$(PP_START_YEAR)" source="ocean_month_rho2" sourceGrid="ocean-tripolar">
+      <component type="ocean_rho2" source="ocean_month_rho2" sourceGrid="ocean-tripolar">
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)" source="ocean_month_rho2"/>
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_B)" source="ocean_month_rho2"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_A)"/>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_B)"/>
       </component>
-      <component type="ocean_z" start="$(PP_START_YEAR)" sourceGrid="ocean-tripolar">
+      <component type="ocean_z" sourceGrid="ocean-tripolar">
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_A)" source="ocean_z_month"> </timeSeries>
         <timeSeries freq="monthly" chunkLength="$(CHUNK_LENGTH_B)" source="ocean_z_month"> </timeSeries>
         <timeSeries freq="annual" chunkLength="$(CHUNK_LENGTH_A)"/>

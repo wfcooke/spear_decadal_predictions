@@ -68,9 +68,6 @@ SPEAR_c192_omlp25_Control_2010_A01
 
   <property name="PROD_SIMTIME"     value="40"/>   <!--simulation length in years-->
 
-  <property name="PP_START_YEAR"   value="1958"/>
-  <property name="PP_START_YEAR_HIST"   value="1958"/>
-
   <property name="PP_AMIP_CHUNK" value="5yr"/>
   <property name="PP_AMIP_START_YEAR"  value="1981"/>
   <property name="ANA_AMIP_START" value="1981"/>
@@ -3233,7 +3230,7 @@ cd ..
          </csh>
       <!--REFINE DIAG SCRIPT -->
       <!--By default a refineDiag script causes the annual data to be unpacked and saved in /ptmp/$USER-->
-      <refineDiag script="/home/wfc/SPEAR/SPEAR_include/refineDiag/netflx_ens.csh,/home/wfc/SPEAR/SPEAR_include/refineDiag/VertVelocity_ens.csh,/home/wfc/SPEAR/SPEAR_include/refineDiag/SPEAR_refineDiag.csh"/>
+      <refineDiag script="$(includeDir)/refineDiag/dummy_refineDiag.csh,$(includeDir)/refineDiag/SPEAR_refineDiag.csh"/>
       <!--PostProcessing component models-->
       <component type="atmos_daily" zInterp="ncep"   source="atmos_daily" sourceGrid="atmos-cubedsphere" xyInterp="180,288" >
 	<timeSeries freq="daily" source="atmos_daily" chunkLength="$(CHUNK_LENGTH_A)"/>

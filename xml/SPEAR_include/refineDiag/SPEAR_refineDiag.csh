@@ -31,7 +31,6 @@ $splitter -v -y .true. \
           -b $oname \
           -c .true. \
           -x $rtsxml \
-          -s .true. \
           -p .true. \
           -d $archive/history \
           -o $archive/ensemble \

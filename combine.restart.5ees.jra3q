@@ -1,0 +1,75 @@
+#!/bin/csh
+
+module use -a /ncrc/home2/fms/local/modulefiles
+module load fre-nctools/2023.01.02
+
+set echo
+
+foreach yyyy (`seq -w 2002 2005`)
+#set yyyy = 2021
+
+foreach expt ( SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst_ens_06-10 )
+echo "Processing ${expt} - ${yyyy}"
+
+#set expt = SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst
+#set expt = SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst_ens_06-10
+set restart_file = /gpfs/f5/gfdl_sd/scratch/Colleen.McHugh/volatile/SPEAR_experiments_Q/${expt}/ncrc5.intel-classic-repro-openmp/restart/${yyyy}0101.tar
+
+set ees = (ens_01 ens_02 ens_03 ens_04 ens_05)
+
+set out_dir = /gpfs/f5/gfdl_sd/proj-shared/$USER/SPEAR_decPred_IC_jra3q
+set outfile = ${out_dir}/${expt}_restart_${yyyy}0101.tar
+set tmpdir = /gpfs/f5/gfdl_sd/scratch/$USER/${expt}
+
+if ( ! -e ${out_dir} ) then
+    echo "Creating outdir ${out_dir}"
+    mkdir -p ${out_dir}
+endif
+
+if ( -e ${tmpdir} ) then
+    echo "Removing tmp dir ${tmpdir}"
+    rm -rf ${tmpdir}
+endif
+
+mkdir -p ${tmpdir}
+
+cd ${tmpdir}
+
+tar -xf $restart_file
+set file_previous = ""
+
+foreach ee ( $ees)
+       set multires = (`ls *.res.$ee.nc.???? *.res.$ee.tile*.nc.????`)
+       foreach file ( $multires )
+           if ( $file:r != $file_previous:r ) then
+              set input_files = ( `ls $file:r.????` )
+              if ( $#input_files > 0 ) then
+                 set compressed = `ncdump -h $input_files[1] | grep 'tile_index:compress' | wc -l`
+                 if ( $compressed > 0 ) then
+                    echo "combine-ncc $input_files $file:r && rm -f $input_files"
+                    combine-ncc $input_files $file:r && rm -f $input_files
+                    if ( $status != 0 ) then
+                      echo "ERROR: in execution of combine-ncc on restarts"
+                      exit 1
+                    endif
+                 else
+                    echo "mppnccombine -64 $file:r $input_files && rm -f $input_files"
+                    mppnccombine -64 $file:r $input_files && rm -f $input_files
+                    if ( $status != 0 ) then
+                      echo "ERROR: in execution of mppnccombine on restarts"
+                      exit 1
+                    endif
+                 endif
+              endif
+           else
+              continue
+           endif
+           set file_previous = $file
+       end
+end
+
+tar -cf ${outfile} *
+
+end #foreach expt
+
+end #foreach yyyy

@@ -9,12 +9,12 @@ set script_dir = `cd $rootdir && pwd`
 cd ${script_dir}
 
 #years to process
-set yr1=1960
-set yr2=1963
+set yr1=2025
+set yr2=2025
 
 #months to process
 set mm1=01
-set mm2=12
+set mm2=01
 
 foreach year (`seq -w ${yr1} ${yr2}`)
     foreach month (`seq -w ${mm1} ${mm2}`)

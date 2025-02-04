@@ -41,6 +41,10 @@ foreach infile ($indir/$yyyy$mm*.nc)
         ls -l $infile
         ferret -script "${script_dir}/Regrid_SPEAR_lo.atmos.jnl" "$infile"
         mv new.nc ${outdir}/$infile:t || exit -1
+
+        echo "Checking to see if there's any missing data..."
+        #check to see if any data is missing
+        python ${script_dir}/check_missing_data.py --infile ${outdir}/$infile:t
    endif
 end
 

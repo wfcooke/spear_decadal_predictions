@@ -15,15 +15,13 @@ mkdir -p ${work_dir}
 
 # grain surface pressure, 1-yr file, into 12  monthly files
 
-#foreach yyyy ( `seq -w 1961 1990` )
-#set yyyy = 2024
-set yyyy = 2002 
+foreach yyyy ( `seq -w 2025 2025` )
 set months = jan #year or jan
 
 if ( $months == "year" ) then
     set mms = ( 01 02 03 04 05 06 07 08 09 10 11 12)
 else if  ($months == "jan" ) then
-    set mms = ( 08 )
+    set mms = ( 01 )
 else
     exit -1
 endif

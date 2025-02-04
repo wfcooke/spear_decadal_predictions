@@ -1,6 +1,6 @@
 source /usr/local/Modules/default/init/csh
 module load cdo
-module load pyferret
+module load python/3.9-pyferret
 module load fre-nctools
 module load gcp
 module load nco

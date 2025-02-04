@@ -15,8 +15,8 @@ fi
 
 cd $data_dir
 
-for yyyy in `seq -w 1960 1960`; do
-    for mm in `seq -w 01 12`; do
+for yyyy in `seq -w 2025 2025`; do
+    for mm in `seq -w 01 01`; do
 
         echo "$yyyy-$mm"
 

@@ -1,23 +1,16 @@
-Feb. 2024 - Documentation from Fanrong Zeng
+Last updated Feb. 2025
 
 # Step-by-step guide to running SPEAR decadal prediction experiments
 
-Real-time decadal predictions are conducted annually at GFDL SD division. Each year by the end of February, the predictions are made and sent to [WMO Lead Centre for Interannual to Decadal Prediction](https://hadleyserver.metoffice.gov.uk/wmolc/), an operational service that provides annually-updated multi-model decadal predictions. This article lists the commands to run the GFDL decadal predictions initialized from January 2024 with the SPEAR_LO model.
+Real-time decadal predictions are conducted annually at GFDL SD division. Each year by the end of February, the predictions are made and sent to [WMO Lead Centre for Interannual to Decadal Prediction](https://hadleyserver.metoffice.gov.uk/wmolc/), an operational service that provides annually-updated multi-model decadal predictions.
 
-## Download and process JRA55 data
+## Download JRA-3Q data
 
-#### Edit jra55/env.csh
-Edit the `jra55/env.csh` file to specify the raw data `$infilesDir` and work directory `$work_dir`for the JRA55 data.
+- Edit years, and months in `download_data/` scripts and download directory location in `download_data/env.sh`. Currently the scripts should be run on PP/AN to download the data directly to `/archive`. The scripts can be run in parallel for each variable.
 
-#### Download surface pressure data
-Go to https://rda.ucar.edu/datasets/ds628.0/dataaccess/ and click on data access. Scroll down to find the JRA-55 6-Hourly Model Resolution Surface Analysis Fields. Make sure to select converted files to download the netcdf format files.
+- Data can be also be found at https://rda.ucar.edu/datasets/ds640.0/dataaccess/
 
-Move downloaded data to `$infilesDir` specified in `jra55/env.csh`.  
-
-#### Download atmospheric data
-Using the same steps to download the atmospheric U, V, T, and Q data by clicking on JRA-55 6-Hourly Model Resolution Model Level Analysis Fields.
-
-Only GRB format data were available for the January 2024 atmospheric U, V, T, and Q data at the time of writing this guide.. Downloaded the GRB files and used the ncl command to convert to netcdf format,
+If necessary, grib files can be converted to netcdf files using the following command
 
     ncl_convert2nc theGRBfiles -e grb -l -nc4
 
@@ -25,65 +18,39 @@ You may need to run the ncks command to set time as the record dimension,
 
     ncks -O --mk_rec_dmn initial_time0_hours  in.nc out.nc
 
-#### Pre-processing the downloaded ps files
+## Extract data for each timestep
 
-#### Check the downloaded files for Jan-Dec 2023
+- `ecda.grain.JRA3Q_month.csh ${year} ${mm} ${var}` should be run for each 3D variable (`temp uwnd vwnd spfh`) to extract the data for each timestep.
 
-    ls -l $infilesDir/anl_surf.0001_pres.reg*2023*_2023*.nc
+- `ecda.grain.JRA3Q.ps.csh` should be run for each year to extract each timestep for the PS variable.
 
-#### Check the downloaded files for jan 2024
+- To run the 3D variables in parallel, first edit the start and end years/months in `submit_jobs/submit_jra3q_extract_month.csh` and run from PP/AN to submit batch jobs in parallel.
 
-    ls -l $infilesDir/anl_surf.0001_pres.reg*2024*_2024*.nc
 
-#### Process the files for 2023 and January 2024
+## Combine all variables for each timestep
 
-Set the variables `$yyyy` and `$months` in the script before running.
+- After data is extracted for each variable above, all variables should be combined at each timestep.
 
-    jra55/ecda.grain.JRA55.ps.csh
- 
-#### Check the output files
-    
-    ls  $base_dir/202[34]??/PS.202[34]??.*.nc
- 
- should have 1460 (365*4 ) files  for non-leap years and 1464 files for leap years.
+- `ecda.combine.JRA3Q.month.csh ${year} ${mm}` should be run for each month. To submit the jobs in parallel, edit the start and end years / months and run `submit_jobs/submit_jra3q_combine_month.csh`.
 
-#### Process the  atmos files into 1-month files
-Each of the atmos files contains 10-day data.  Run the following script to create monthly files,
+## Regrid files
 
-Set the `$yyyy` and `$months` variables in the script before running.
+- After the files have been combined, regrid each file to the SPEAR_LO c96 grid.
 
-    jra55/ecda.grain.JRA55.csh
+- `ecda.regrid.JRA3Q.month.csh ${year} ${mm}` should be run for each month on PP/AN. To submit the jobs in parallel, edit the start and end years / months and run `submit_jobs/submit_jra3q_regrid_month.csh` to submit jobs to the batch system.
 
-#### Check the output files
-    ls  $base_dir/202[34]??/{011_tmp,033_ugrd,034_vgrd,051_spfh}*202[34]??.*.nc
+- Final output is moved to the `$archive_dir` set in `env.csh`.
 
-#### Combine the surface and atmospheric files
+## Transfer to gaea
+gcp the files in `$archive_dir` to gaea. Files are in `/gpfs/f5/gfdl_sd/world-shared/Colleen.McHugh/jra3q/`.
 
-Set the `$yyyy` variable in the script before running.
+## Create jra3q_filelist
 
-    jra55/run_combine_JRA55.csh
+    ls -d /gpfs/f5/gfdl_sd/world-shared/Colleen.McHugh/jra3q/{2024,2025}/*.nc > /gpfs/f5/gfdl_sd/world-shared/Colleen.McHugh/jra3q/jra3q_filelist/jra3q_file_names_2024
 
-Run the combine script for January 2024.
+## Extend ERSST monthly mean SST to Jan 2025
 
-    jra55/ecda.combine.JRA55.all_vars.csh 2024 01
-
-#### Check the output files
-    ls  $base_dir/2023/*
-    ls  $base_dir/2024/*
-
-#### Regrid the combined files onto SPEAR_LO atmos grid
-    jra55/ecda.regrid.JRA55.csh 2023
-    jra55/ecda.regrid.JRA55.csh 2024
-
-#### Check the output files
-    ls -l  $base_dir/{2023,2024}/*
-
-#### Transfer to gaea
-gcp the files in `$base_dir/{2023,2024}` to gaea, `/gpfs/f5/gfdl_sd/world-shared/Xiaosong.Yang/archive/ada_data/JRA55/2023`
-
-## Extend ERSST monthly mean SST to Jan 2024
-
-#### Download monthly mean ERSST SST up to January 2024
+#### Download monthly mean ERSST SST up to January 2025
 
 Set the `$base_dir` and `$archive_dir` variables in `ersst/env.csh` to specify where the data will be downloaded and transferred to.
 
@@ -93,58 +60,53 @@ Run `ersst/download_ersst.csh` to download `sst.mnmean.nc` from https://psl.noaa
     ersst/data_sst.mnmean.v5.spear_lo.csh
 
 #### Transfer to gaea
-    gcp SPEAR_lo_tripolar.sst.nc gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/ersst.sst.mnmean.v5.nc
+    gcp SPEAR_lo_tripolar.sst.nc gaea:/gpfs/f5/gfdl_sd/world-shared/Colleen.McHugh/ersst/SPEAR_lo_tripolar.sst.nc
 
-## Extend reanalysis to Dec. 2023
+## Extend reanalysis to Dec. 2024
 
-The 10-members are run in two 5-member ensembles, `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst` and `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`.
-The runs  have completed Jan 1958-Dec 2022, and need to extend to Dec 2023.
+The 10-members are run in two 5-member ensembles, `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst` and `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst_ens_06-10`.
 
-#### expt: SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+#### expt: SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst
 
-take the Jan 2023 initial conditions and transfer to gaea:
+#### xml: SPEAR_experiments_Q50L33_c96_o1_HIST_jra3q_B01_1958.C5.xml
 
-    gcp  /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst/restart/20230101.tar gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_restart_20230101.tar
+if necessary, take the Jan 2024 initial conditions and transfer to gaea:
 
-#### Re-generate runscript
+    /archive/cem/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst/restart/
+
+    /archive/cem/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst_ens_06-10/restart/
+
+#### Re-generate and submit the runscript
 Login to gaea5X
     
-    module load fre/bronx-21
+    module load fre/bronx-22
     
-    frerun --platform=ncrc5.intel-classic --target=repro,openmp -x xml/SPEAR_experiments_Q50L33_c96_o1_HIST_jra55_B01_1958.C5.xml  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
-
-#### Submit the runscript
-    sbatch /gpfs/f5/gfdl_sd/scratch/$USER/SPEAR_experiments_Q/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst/ncrc5.intel-classic-repro-openmp/scripts/run/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst
+    frerun --platform=ncrc5.intel23_2_0 --qos=normal --target=repro,opemp --transfer --walltime=240 --xmlfile=/ncrc/home1/Colleen.McHugh/git/spear_decadal_predictions/xml/SPEAR_experiments_Q50L33_c96_o1_HIST_jra3q_B01_1958.C5.xml SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst
  
 #### Setup and run members 06-10
 Same as for the members 01-05 but setup the runscript based on  `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`
-The initial conditions are transferred to gaea via this command
-    
-    gcp  /archive/fjz/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10/restart/20230101.tar gaea:/gpfs/f5/gfdl_sd/world-shared/Fanrong.Zeng/module_data/SPEAR/SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10_restart_20230101.tar
 
 ## Run 2024 decadal predictions from the Jan. 2024 initial conditions
 
 The 10-member prediction runs are conducted in two 5-member ensembles with the same experiment name i20240101 but under different directories.
 
 #### Combine initial conditions for members 01-05 and ens06-10.
-Set `restart_file` to the restart from the reanalysis run. Run twice for `restart_file= SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst` and `restart_file =  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`
+Set `restart_file` to the restart from the reanalysis run. Run twice for `restart_file= SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst` and `restart_file =  SPEAR_Q50L33_c96_o1_Hist_AllForc_jra3q_B01_1960_ersst_ens_06-10`
     
     combine.restart.5ees
 
 #### Run prediction experiment: i20240101 for members 01-05
 
-start from `xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-21_C5.xml` and set initCond to restart-file-2024 created above. The generate runscript using frerun.
+start from `SPEAR_experiments_K_DecPred_icJRA3Q_ERSST.xml` and set initCond to restart-file-2025 created above. The generate runscript using frerun.
 
-These are the commands used for 2023 predictions
+These are the commands used for 2025 predictions
 
-    module load fre/bronx-21
+    module load fre/bronx-22
     
-    frerun  -x /autofs/ncrc-svm1_home1/Colleen.McHugh/SPEAR_xml/xml/SPEAR_experiments_K_DecPred_icJRA_ERSST.bronx-21_C5.Colleen.xml --platform=ncrc5.intel-classic --qos=urgent --target=repro,openmp i20240101
-    
-    sbatch the runscript
+    frerun --platform=ncrc5.intel23_2_0 --qos=normal --target=repro,openmp --xmlfile=/ncrc/home1/Colleen.McHugh/git/spear_decadal_predictions/xml/SPEAR_experiments_K_DecPred_icJRA3Q_ERSST.xml i20250101_jra3q
 
 ### Run prediction experiment: i20240101 for members 06-10
-Following the same steps as for members 01-05 using the xml `xml/SPEAR_experiments_K_DecPred_icJRA_ERSST_ens_06-10.bronx-21_C5.xml`. Make sure to start from the 20240101 restart file from expt: `SPEAR_Q50L33_c96_o1_Hist_AllForc_jra55_B01_1958_ersst_ens_06-10`
+Following the same steps as for members 01-05 using the xml `xml/SPEAR_experiments_K_DecPred_icJRA3Q_ERSST_ens_06-10.xml`. Make sure to start from the 20250101 restart file crated above.
 
 ## Prepare and submit the output
 
